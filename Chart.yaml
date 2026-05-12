@@ -1,0 +1,16 @@
+apiVersion: v2
+name: openclaw-agent
+description: Standalone Helm chart for the OpenClaw AgentRuntime Agent
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - openclaw
+  - agentruntime
+  - agent
+  - ai
+maintainers:
+  - name: OpenClaw Team
+home: https://github.com/example/openclaw-fleet
+sources:
+  - https://github.com/example/openclaw-fleet

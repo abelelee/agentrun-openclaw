@@ -1,0 +1,66 @@
+# Default values for openclaw-agent
+# This chart provisions a single AgentRuntime Agent resource for OpenClaw.
+
+# Target namespace for the Agent CR.
+# Leave empty to fall back to the Helm release namespace (-n flag).
+# The namespace itself is auto-created via `helm install --create-namespace`
+# if it doesn't already exist.
+namespace: ""
+
+# Agent basic configuration
+agent:
+  # Agent resource name.
+  # Leave empty to auto-derive as 'openclaw-<namespace>'.
+  name: ""
+  # Worker container image for the OpenClaw agent
+  workerImage: registry-vpc.cn-hangzhou.aliyuncs.com/edas_unified_test_bk/openclaw-fleet:latest
+  # PVC name for shared storage (must be pre-created / ReadWriteMany)
+  sharedPvcName: openclaw-pvc
+  # Container port exposed by the worker
+  containerPort: 18789
+  # App mode env var value
+  appMode: isolated
+
+# Agent template resources
+resources:
+  limits:
+    cpu: "2"
+    memory: "2048Mi"
+  requests:
+    cpu: "500m"
+    memory: "256Mi"
+
+# Agent scaling configuration
+scaling:
+  minReplicas: 0
+  maxReplicas: 10
+  initReplicas: 0
+
+# OTLP/ARMS observability configuration for workers
+observability:
+  # OTLP endpoint for trace/metrics export
+  # Example: http://fleet-manager.openclaw-fleet.svc.cluster.local:9800/otel/
+  otlpEndpoint: ""
+  # ARMS license key for authentication
+  armsLicenseKey: "ignore-arms-license-key"
+  # ARMS project name
+  armsProject: "fleet-manager"
+  # Workspace identifier
+  armsWorkspace: "default"
+  # Gateway token for service authentication
+  gatewayToken: "a5c9079c42b5b34c076a905774f308546812c084bb79df67"
+  # VLLM API key for LLM access
+  vllmApiKey: ""
+
+# Init container for preparing permissions on shared data volume
+initContainer:
+  image: registry.cn-hangzhou.aliyuncs.com/acs/busybox:v1.29.2
+
+# SubPath template for the workspace under the shared PVC.
+# {{.SessionID}} is rendered by AgentRuntime at session provisioning time.
+subPaths:
+  workspace: "members/openclaw/{{.SessionID}}/.openclaw/workspace"
+  cron: "members/openclaw/{{.SessionID}}/.openclaw/cron"
+
+# Data directory inside the worker container
+dataDir: "/data/fleet/members/{{.SessionID}}/.openclaw"

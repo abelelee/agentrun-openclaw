@@ -1,0 +1,25 @@
+# Example values for openclaw-agent on Alibaba Cloud
+# Usage:
+#   helm upgrade --install openclaw-agent ./charts/openclaw-agent \
+#     -n openclaw-fleet \
+#     -f charts/openclaw-agent/examples/values-aliyun.yaml
+
+# Target namespace. `helm install --create-namespace` auto-creates it
+# if it doesn't exist.
+namespace: thomas
+
+agent:
+  # Leave empty to auto-derive as 'openclaw-<namespace>' (e.g. openclaw-thomas).
+  name: ""
+  workerImage: registry-vpc.cn-hangzhou.aliyuncs.com/edas_unified_test_bk/openclaw-fleet:latest
+  sharedPvcName: openclaw-pvc
+  containerPort: 18789
+
+observability:
+  # Point to the fleet-manager OTLP receiver
+  otlpEndpoint: "http://fleet-manager.openclaw-fleet.svc.cluster.local:9800/otel/"
+  armsLicenseKey: "ignore-arms-license-key"
+  armsProject: "fleet-manager"
+  armsWorkspace: "default"
+  gatewayToken: "cb019cddf41fc030315c46daa1f97761197c930ccb00c790"
+  vllmApiKey: "找老师要"

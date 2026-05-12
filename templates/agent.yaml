@@ -1,0 +1,120 @@
+apiVersion: agentruntime.alibabacloud.com/v1alpha1
+kind: Agent
+metadata:
+  name: {{ include "openclaw-agent.agentName" . }}
+  namespace: {{ include "openclaw-agent.namespace" . }}
+  labels:
+    {{- include "openclaw-agent.labels" . | nindent 4 }}
+  annotations:
+    serving.knative.dev/carry-session: "true"
+spec:
+  type: managed
+  description: "北京航空航天大学云原生课程实验"
+  showName: "oc-{{ include "openclaw-agent.namespace" . }}"
+
+  # Agent 模板配置
+  template:
+    spec:
+      # 制品配置
+      artifact:
+        type: Image
+        repository:
+          image: {{ .Values.agent.workerImage }}
+
+      # 资源配置
+      resources:
+        limits:
+          cpu: {{ .Values.resources.limits.cpu | quote }}
+          memory: {{ .Values.resources.limits.memory | quote }}
+        requests:
+          cpu: {{ .Values.resources.requests.cpu | quote }}
+          memory: {{ .Values.resources.requests.memory | quote }}
+
+      idleTimeoutSeconds: 10
+      # 伸缩配置
+      scaling:
+        maxReplicas: 2
+        minReplicas: 0
+        initReplicas: 0
+        scaleDownSeconds: 10      # 环境变量（不包含 session 相关的变量，这些会在 sessionTemplate 中配置）
+      env:
+        - name: APP_MODE
+          value: {{ .Values.agent.appMode | quote }}
+        - name: FLEET_TENANT_ID
+          value: 'openclaw'
+        - name: CMS_ENDPOINT
+          value: {{ .Values.observability.otlpEndpoint | quote }}
+        - name: CMS_ARMS_LICENSE_KEY
+          value: {{ .Values.observability.armsLicenseKey | quote }}
+        - name: CMS_ARMS_PROJECT
+          value: {{ .Values.observability.armsProject | quote }}
+        - name: CMS_WORKSPACE
+          value: {{ .Values.observability.armsWorkspace | quote }}
+        - name: GATEWAY_TOKEN
+          value: "cb019cddf41fc030315c46daa1f97761197c930ccb00c790"
+        - name: VLLM_API_KEY
+          value: {{ .Values.observability.vllmApiKey | quote }}
+      accesses:
+        - port: {{ .Values.agent.containerPort }}
+
+---
+
+apiVersion: agentruntime.alibabacloud.com/v1alpha1
+kind: ToolServer
+metadata:
+  name: browser
+  namespace: {{ include "openclaw-agent.namespace" . }}
+spec:
+  showName: Browser-{{ include "openclaw-agent.namespace" . }}
+  template:
+    spec:
+      accesses:
+      - port: 80
+        type: http
+      artifact:
+        repository:
+          image: registry.cn-hangzhou.aliyuncs.com/edas-test-ns/runtime-sandbox-browser:20260317
+        type: Image
+      concurrency: 100
+      env:
+      - name: SECRET_TOKEN
+        value: test
+      idleTimeoutSeconds: 1800
+      isolation: isolated
+      livenessProbe:
+        failureThreshold: 30
+        httpGet:
+          path: /fastapi/health
+          port: 80
+        periodSeconds: 10
+        successThreshold: 1
+        timeoutSeconds: 3
+      readinessProbe:
+        failureThreshold: 20
+        httpGet:
+          path: /fastapi/health
+          port: 80
+        periodSeconds: 3
+        successThreshold: 1
+        timeoutSeconds: 3
+      resources:
+        limits:
+          cpu: "1"
+          memory: 2Gi
+        requests:
+          cpu: 250m
+          memory: 512Mi
+      revisionDescription: init
+      runtimeClass: security
+      sandBoxTemplate:
+        name: browser
+      scaling:
+        maxReplicas: 2
+        minReplicas: 0
+        initReplicas: 0
+        scaleDownSeconds: 5
+      storage:
+        ephemeral:
+          capacity: 10Gi
+      version: v1.0.0
+  type: managed

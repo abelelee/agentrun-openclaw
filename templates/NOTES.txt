@@ -1,0 +1,18 @@
+OpenClaw Agent has been deployed.
+
+Release:     {{ .Release.Name }}
+Namespace:   {{ include "openclaw-agent.namespace" . }}
+Agent name:  {{ include "openclaw-agent.agentName" . }}
+Image:       {{ .Values.agent.workerImage }}
+Shared PVC:  {{ .Values.agent.sharedPvcName }}
+
+Notes:
+  * The namespace is auto-created by `helm install --create-namespace`
+    when it doesn't exist; it is NOT owned by this release, so
+    `helm uninstall` will not remove it.
+
+Inspect the Agent resource:
+  kubectl -n {{ include "openclaw-agent.namespace" . }} get agent {{ include "openclaw-agent.agentName" . }} -o yaml
+
+Watch status:
+  kubectl -n {{ include "openclaw-agent.namespace" . }} get agent {{ include "openclaw-agent.agentName" . }} -w
