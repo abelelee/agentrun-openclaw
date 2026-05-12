@@ -80,7 +80,13 @@ agentruntime.console.aliyun.com
 ### Step 4 — 克隆代码仓库
 
 ```bash
+# 匿名用户
+git clone https://github.com/cloudapp-suites/agentrun-openclaw.git
+
+or 
+# 登陆用户
 git clone git@github.com:cloudapp-suites/agentrun-openclaw.git
+
 ```
 
 ### Step 5 — 填写 VLLM API Key 并一键部署
